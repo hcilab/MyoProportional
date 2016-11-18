@@ -39,8 +39,36 @@ class MyoProportional {
     registeredSensors = new HashMap<Action, SensorConfig>();
   }
 
-  public void loadCalibrationSettings(String calibrationFilename) {
-    // TODO
+  public void writeCalibrationSettings(String calibrationFilename) {
+    assert(isCalibrated());
+
+    Table calibrationTable;
+    if (!fileExists(calibrationFilename))
+      calibrationTable = initializeCalibrationTable();
+    else
+      calibrationTable = loadTable(calibrationFilename, "header");
+
+    TableRow newSettings = calibrationTable.addRow();
+    newSettings.setInt("timestamp", int(System.currentTimeMillis()));
+    newSettings.setInt("left_sensor", registeredSensors.get(Action.LEFT).sensorID);
+    newSettings.setFloat("left_reading", registeredSensors.get(Action.LEFT).maxReading);
+    newSettings.setInt("right_sensor", registeredSensors.get(Action.RIGHT).sensorID);
+    newSettings.setFloat("right_reading", registeredSensors.get(Action.RIGHT).maxReading);
+
+    saveTable(calibrationTable, "data/" + calibrationFilename);
+  }
+
+  public void loadCalibrationSettings(String calibrationFilename) throws CalibrationFailedException {
+    Table calibrationTable = loadTable(calibrationFilename, "header");
+    TableRow calibrationSettings = calibrationTable.getRow(calibrationTable.getRowCount()-1);
+
+    int leftSensorID = calibrationSettings.getInt("left_sensor");
+    int rightSensorID = calibrationSettings.getInt("right_sensor");
+    float leftSensorMaxReading = calibrationSettings.getFloat("left_reading");
+    float rightSensorMaxReading = calibrationSettings.getFloat("right_reading");
+
+    registerActionManual(Action.LEFT, leftSensorID, leftSensorMaxReading);
+    registerActionManual(Action.RIGHT, rightSensorID, rightSensorMaxReading);
   }
 
   public SensorConfig registerAction(Action action) throws CalibrationFailedException {
@@ -150,6 +178,21 @@ class MyoProportional {
 
   private boolean isValidCalibration(int sensorID, float sensorReading) {
     return sensorID >= 0 && sensorID < myoBuffer.NUM_SENSORS && sensorReading >= 0.0 && sensorReading <= 1.0;
+  }
+
+  private Table initializeCalibrationTable() {
+    Table calibrationTable = new Table();
+    calibrationTable.addColumn("timestamp");
+    calibrationTable.addColumn("left_sensor");
+    calibrationTable.addColumn("left_reading");
+    calibrationTable.addColumn("right_sensor");
+    calibrationTable.addColumn("right_reading");
+    return calibrationTable;
+  }
+
+  private boolean fileExists(String filename) {
+    File file = new File("data/" + filename);
+    return file.exists();
   }
 }
 

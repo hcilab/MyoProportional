@@ -36,6 +36,15 @@ private void calibrate() {
   assert(myoProportional.isCalibrated());
 }
 
+private void loadCalibrationFile(String filename) {
+  try {
+    myoProportional.loadCalibrationSettings(filename);
+  } catch (CalibrationFailedException e) {
+    println("[ERROR] Could not load calibration settings from: " + filename + ", exiting.");
+    System.exit(3);
+  }
+}
+
 
 void draw() {
   // Adjust by:
