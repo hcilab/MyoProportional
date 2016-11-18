@@ -55,19 +55,18 @@ class MyoProportional {
       }
     }
 
-    if (strongestID == -1 || strongestReading == 0)
-      throw new CalibrationFailedException();
-
-    SensorConfig s = new SensorConfig(strongestID, strongestReading);
-    registeredSensors.put(action, s);
-    return s;
+    return registerActionManual(action, strongestID, strongestReading);
   }
 
   public SensorConfig registerActionManual(Action action, int sensorID) throws CalibrationFailedException {
     float[] readings = myoBuffer.poll();
-
     float sensorReading = readings[sensorID];
-    if (sensorReading == 0)
+
+    return registerActionManual(action, sensorID, sensorReading);
+  }
+
+  public SensorConfig registerActionManual(Action action, int sensorID, float sensorReading) throws CalibrationFailedException {
+    if (!isValidCalibration(sensorID, sensorReading))
       throw new CalibrationFailedException();
 
     SensorConfig s = new SensorConfig(sensorID, sensorReading);
@@ -146,6 +145,11 @@ class MyoProportional {
   public void setSensitivity(Action action, float value) {
     SensorConfig s = registeredSensors.get(action);
     s.maxReading = value;
+  }
+
+
+  private boolean isValidCalibration(int sensorID, float sensorReading) {
+    return sensorID >= 0 && sensorID < myoBuffer.NUM_SENSORS && sensorReading >= 0.0 && sensorReading <= 1.0;
   }
 }
 
