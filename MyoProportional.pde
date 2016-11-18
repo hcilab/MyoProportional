@@ -11,10 +11,10 @@ enum Policy {RAW, MAXIMUM, DIFFERENCE, FIRST_OVER};
  * This should really be a static method of the MyoBuffer class, but Processing
  * makes that difficult to do.
 */
-private MyoBuffer myoBufferSingleton;
-private MyoBuffer getMyoBufferSingleton(PApplet mainObject) throws MyoNotDetectectedError {
+private LibMyoBuffer myoBufferSingleton;
+private LibMyoBuffer getMyoBufferSingleton(PApplet mainObject) throws MyoNotDetectectedError {
   if (myoBufferSingleton == null)
-    myoBufferSingleton = new MyoBuffer(mainObject);
+    myoBufferSingleton = new LibMyoBuffer(mainObject);
 
   return myoBufferSingleton;
 }
@@ -24,7 +24,7 @@ class MyoProportional {
   private final float IMPULSE_THRESHOLD = 0.8;
   private final float FIRST_OVER_THRESHOLD = 0.5;
 
-  private MyoBuffer myoBuffer;
+  private LibMyoBuffer myoBuffer;
   private Map<Action, SensorConfig> registeredSensors;
 
   // In the first-over control policy, the first action to surpass a threshold

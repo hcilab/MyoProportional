@@ -3,18 +3,18 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 
-class MyoBuffer {
+class LibMyoBuffer {
   public final int NUM_SENSORS = 8;
   public final int MAX_MYO_READING = 127;
 
   ConcurrentLinkedQueue<Sample> sampleWindow;
 
 
-  MyoBuffer(PApplet mainObject) throws MyoNotDetectectedError {
+  LibMyoBuffer(PApplet mainObject) throws MyoNotDetectectedError {
     this(mainObject, 150);
   }
 
-  MyoBuffer(PApplet mainObject, int windowSizeMillis) throws MyoNotDetectectedError {
+  LibMyoBuffer(PApplet mainObject, int windowSizeMillis) throws MyoNotDetectectedError {
     sampleWindow = new ConcurrentLinkedQueue<Sample>();
 
     // fork a new thread to concurrently stream EMG data into sampleWindow
@@ -49,12 +49,12 @@ class MyoBuffer {
 
 
 private class EmgCollector implements Runnable {
-  MyoEMG myoEmg;
+  LibMyoStream myoStream;
   ConcurrentLinkedQueue<Sample> sampleWindow;
   long windowSizeMillis;
 
   public EmgCollector(PApplet mainObject, ConcurrentLinkedQueue<Sample> sampleWindow, long windowSizeMillis) throws MyoNotDetectectedError {
-    this.myoEmg = new MyoEMG(mainObject);
+    this.myoStream = new LibMyoStream(mainObject);
     this.sampleWindow = sampleWindow;
     this.windowSizeMillis = windowSizeMillis;
   }
@@ -62,7 +62,7 @@ private class EmgCollector implements Runnable {
   public void run() {
     while (true) {
       // insert new reading
-      Sample s = myoEmg.readSample();
+      Sample s = myoStream.readSample();
       sampleWindow.add(s);
 
       // maintain window
