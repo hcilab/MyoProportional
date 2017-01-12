@@ -67,8 +67,8 @@ class LibMyoProportional {
     float leftSensorMaxReading = calibrationSettings.getFloat("left_reading");
     float rightSensorMaxReading = calibrationSettings.getFloat("right_reading");
 
-    registerActionManual(Action.LEFT, leftSensorID, leftSensorMaxReading);
-    registerActionManual(Action.RIGHT, rightSensorID, rightSensorMaxReading);
+    registerAction(Action.LEFT, leftSensorID, leftSensorMaxReading);
+    registerAction(Action.RIGHT, rightSensorID, rightSensorMaxReading);
   }
 
   public SensorConfig registerAction(Action action) throws CalibrationFailedException {
@@ -83,17 +83,17 @@ class LibMyoProportional {
       }
     }
 
-    return registerActionManual(action, strongestID, strongestReading);
+    return registerAction(action, strongestID, strongestReading);
   }
 
-  public SensorConfig registerActionManual(Action action, int sensorID) throws CalibrationFailedException {
+  public SensorConfig registerAction(Action action, int sensorID) throws CalibrationFailedException {
     float[] readings = myoBuffer.poll();
     float sensorReading = readings[sensorID];
 
-    return registerActionManual(action, sensorID, sensorReading);
+    return registerAction(action, sensorID, sensorReading);
   }
 
-  public SensorConfig registerActionManual(Action action, int sensorID, float sensorReading) throws CalibrationFailedException {
+  public SensorConfig registerAction(Action action, int sensorID, float sensorReading) throws CalibrationFailedException {
     if (!isValidCalibration(sensorID, sensorReading))
       throw new CalibrationFailedException();
 
