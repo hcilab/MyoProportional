@@ -127,8 +127,7 @@ class LibMyoProportional {
         break;
 
       case MAXIMUM:
-        float minimum = min(left, right);
-        if (left == minimum)
+        if (left < right)
           left = 0;
         else
           right = 0;
