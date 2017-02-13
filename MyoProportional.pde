@@ -1,6 +1,8 @@
 LibMyoProportional myoProportional;
 
 
+int frameCount = 0;
+
 void setup() {
   frameRate(5);
 
@@ -12,6 +14,7 @@ void setup() {
   }
 
   calibrate();
+  myoProportional.enableEmgLogging("emg.csv");
 }
 
 private void calibrate() {
@@ -52,6 +55,10 @@ void draw() {
   //  - using different Policies: RAW, MAXIMUM, DIFFERENCE, FIRST_OVER
   HashMap<Action, Float> readings = myoProportional.pollAndTrim(Policy.RAW);
   prettyPrint(readings);
+
+  // explicitly log EMG data every 10 frames (in practice, do this much less frequently)
+  if (frameCount++ % 10 == 0)
+    myoProportional.flushEmgLog();
 }
 
 private void prettyPrint(HashMap<Action, Float> data) {
