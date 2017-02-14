@@ -23,6 +23,7 @@ private LibMyoBuffer getMyoBufferSingleton(PApplet mainObject) throws MyoNotDete
 class LibMyoProportional {
   private final float IMPULSE_THRESHOLD = 0.8;
   private final float FIRST_OVER_THRESHOLD = 0.5;
+  private final float DEFAULT_MAT = 0.10;
 
   private LibMyoBuffer myoBuffer;
   private Map<Action, SensorConfig> registeredSensors;
@@ -58,8 +59,10 @@ class LibMyoProportional {
     newSettings.setInt("timestamp", int(System.currentTimeMillis()));
     newSettings.setInt("left_sensor", registeredSensors.get(Action.LEFT).sensorID);
     newSettings.setFloat("left_reading", registeredSensors.get(Action.LEFT).maxReading);
+    newSettings.setFloat("left_mat", registeredSensors.get(Action.LEFT).minimumActivationThreshold);
     newSettings.setInt("right_sensor", registeredSensors.get(Action.RIGHT).sensorID);
     newSettings.setFloat("right_reading", registeredSensors.get(Action.RIGHT).maxReading);
+    newSettings.setFloat("right_mat", registeredSensors.get(Action.RIGHT).minimumActivationThreshold);
 
     saveTable(calibrationTable, "data/" + calibrationFilename);
   }
@@ -100,10 +103,10 @@ class LibMyoProportional {
   }
 
   public SensorConfig registerAction(Action action, int sensorID, float sensorReading) throws CalibrationFailedException {
-    if (!isValidCalibration(sensorID, sensorReading))
+    if (!isValidCalibration(sensorID, sensorReading, DEFAULT_MAT))
       throw new CalibrationFailedException();
 
-    SensorConfig s = new SensorConfig(sensorID, sensorReading);
+    SensorConfig s = new SensorConfig(sensorID, sensorReading, DEFAULT_MAT);
     registeredSensors.put(action, s);
     return s;
   }
@@ -130,6 +133,11 @@ class LibMyoProportional {
 
     if (loggingEnabled)
       emgReadings.add(new EmgReading(System.currentTimeMillis(), left, right, impulse));
+
+    if (policy != Policy.RAW) {
+      left = scale(left, registeredSensors.get(Action.LEFT).minimumActivationThreshold);
+      right = scale(right, registeredSensors.get(Action.RIGHT).minimumActivationThreshold);
+    }
 
     switch (policy) {
       case RAW:
@@ -183,6 +191,11 @@ class LibMyoProportional {
     s.maxReading = value;
   }
 
+  public void setMinimumActivationThreshold(Action action, float value) {
+    SensorConfig s = registeredSensors.get(action);
+    s.minimumActivationThreshold = value;
+  }
+
   // The LibMyoProportional object can be configured to log all EMG data (one
   // row per poll() call) using this method. Note that you must explicitly call
   // flushEmgLog() in order for the data to be persisted (see below).
@@ -219,8 +232,14 @@ class LibMyoProportional {
     logfile = "";
   }
 
-  private boolean isValidCalibration(int sensorID, float sensorReading) {
-    return sensorID >= 0 && sensorID < myoBuffer.NUM_SENSORS && sensorReading >= 0.0 && sensorReading <= 1.0;
+  private boolean isValidCalibration(int sensorID, float sensorReading, float mat) {
+    return sensorID >= 0 && sensorID < myoBuffer.NUM_SENSORS && sensorReading >= 0.0 && sensorReading <= 1.0 && mat >= 0.0 && mat <= 1.0;
+  }
+
+  private float scale(float reading, float minimumActivationThreshold) {
+    // scale the reading so that the remaining range of input (i.e., above the activationThreshold) results in the full range of movement speeds
+    float scaledReading = (reading-minimumActivationThreshold) * (1.0/(1.0-minimumActivationThreshold));
+    return max(scaledReading, 0.0);
   }
 
   private Table initializeCalibrationTable() {
@@ -228,8 +247,10 @@ class LibMyoProportional {
     calibrationTable.addColumn("timestamp");
     calibrationTable.addColumn("left_sensor");
     calibrationTable.addColumn("left_reading");
+    calibrationTable.addColumn("left_mat");
     calibrationTable.addColumn("right_sensor");
     calibrationTable.addColumn("right_reading");
+    calibrationTable.addColumn("right_mat");
     return calibrationTable;
   }
 
@@ -252,10 +273,12 @@ class LibMyoProportional {
 class SensorConfig {
   public int sensorID;
   public float maxReading;
+  public float minimumActivationThreshold;
 
-  SensorConfig(int id, float maxReading) {
+  SensorConfig(int id, float maxReading, float minimumActivationThreshold) {
     this.sensorID = id;
     this.maxReading = maxReading;
+    this.minimumActivationThreshold = minimumActivationThreshold;
   }
 }
 
