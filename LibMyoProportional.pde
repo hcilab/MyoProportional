@@ -192,11 +192,13 @@ class LibMyoProportional {
   public void setSensitivity(Action action, float value) {
     SensorConfig s = registeredSensors.get(action);
     s.maxReading = value;
+    assert(isValidCalibration(s));
   }
 
   public void setMinimumActivationThreshold(Action action, float value) {
     SensorConfig s = registeredSensors.get(action);
     s.minimumActivationThreshold = value;
+    assert(isValidCalibration(s));
   }
 
   // The LibMyoProportional object can be configured to log all EMG data (one
@@ -233,6 +235,10 @@ class LibMyoProportional {
   public void disableEmgLogging() {
     loggingEnabled = false;
     logfile = "";
+  }
+
+  private boolean isValidCalibration(SensorConfig s) {
+    return isValidCalibration(s.sensorID, s.maxReading, s.minimumActivationThreshold);
   }
 
   private boolean isValidCalibration(int sensorID, float sensorReading, float mat) {
