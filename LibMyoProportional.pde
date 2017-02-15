@@ -126,6 +126,7 @@ class LibMyoProportional {
   public HashMap<Action, Float> poll(Policy policy) {
     assert(isCalibrated());
 
+    // Step 1. acquire "raw" readings, calculating impulse before any further processing
     float[] readings = myoBuffer.poll();
     float left = readings[registeredSensors.get(Action.LEFT).sensorID] / registeredSensors.get(Action.LEFT).maxReading;
     float right = readings[registeredSensors.get(Action.RIGHT).sensorID] / registeredSensors.get(Action.RIGHT).maxReading;
@@ -134,11 +135,13 @@ class LibMyoProportional {
     if (loggingEnabled)
       emgReadings.add(new EmgReading(System.currentTimeMillis(), left, right, impulse));
 
+    // Step 2. scale readings according to minimum activation threshold settings
     if (policy != Policy.RAW) {
       left = scale(left, registeredSensors.get(Action.LEFT).minimumActivationThreshold);
       right = scale(right, registeredSensors.get(Action.RIGHT).minimumActivationThreshold);
     }
 
+    // Step 3. transform according to specified control policy
     switch (policy) {
       case RAW:
         break;
