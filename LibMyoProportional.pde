@@ -68,6 +68,7 @@ class LibMyoProportional {
   }
 
   public void loadCalibrationSettings(String calibrationFilename) throws CalibrationFailedException {
+    // TODO gracefully handle FileNotFound exception
     Table calibrationTable = loadTable(calibrationFilename, "header");
     TableRow calibrationSettings = calibrationTable.getRow(calibrationTable.getRowCount()-1);
 
