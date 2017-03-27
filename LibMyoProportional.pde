@@ -51,7 +51,7 @@ class LibMyoProportional {
     assert(isCalibrated());
 
     Table calibrationTable;
-    if (!fileExists(calibrationFilename))
+    if (!fileExists("data/" + calibrationFilename))
       calibrationTable = initializeCalibrationTable();
     else
       calibrationTable = loadTable(calibrationFilename, "header");
@@ -269,7 +269,7 @@ class LibMyoProportional {
   }
 
   private boolean fileExists(String filename) {
-    File file = new File("data/" + filename);
+    File file = new File(filename);
     return file.exists();
   }
 }
