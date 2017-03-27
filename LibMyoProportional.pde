@@ -51,7 +51,7 @@ class LibMyoProportional {
     assert(isCalibrated());
 
     Table calibrationTable;
-    if (!fileExists("data/" + calibrationFilename))
+    if (!fileExists(sketchPath() + "data/" + calibrationFilename))
       calibrationTable = initializeCalibrationTable();
     else
       calibrationTable = loadTable(calibrationFilename, "header");
